@@ -20,8 +20,8 @@ namespace StickyNotes
         public MainWindow()
         {
             InitializeComponent();
+            // Load the RichTextBox contents from the locally saved file at the start of the application.
             LoadNotesContent();
-
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
@@ -34,11 +34,14 @@ namespace StickyNotes
         {
             try
             {
+                // Extract text from RichTextBox
                 TextRange textRange = new TextRange(notesContentRichTextBox.Document.ContentStart, notesContentRichTextBox.Document.ContentEnd);
                 string richText = textRange.Text;
 
+                // Create an instance of the class and set the text
                 RichTextBoxData data = new RichTextBoxData { Text = richText };
 
+                // Serialize the class instance to XMLSerializer
                 XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
                 using (FileStream fs = new FileStream(_fileNameXML, FileMode.Create))
                 {
@@ -58,16 +61,20 @@ namespace StickyNotes
 
         private void LoadNotesContent()
         {
+            // If the file exists
             if (File.Exists(_fileNameXML))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
                 using (FileStream fs = new FileStream(_fileNameXML, FileMode.Open))
                 {
                     RichTextBoxData data = (RichTextBoxData)serializer.Deserialize(fs);
+                    // Clear the RichTextBox content
                     notesContentRichTextBox.Document.Blocks.Clear();
+                    // Load the text into the RichTextBox
                     notesContentRichTextBox.Document.Blocks.Add(new Paragraph(new Run(data.Text)));
                 }
             }
+            // If the file doesn't exist, enter this text to the RichTextBox
             else
             {
                 notesContentRichTextBox.AppendText("Enter here...");

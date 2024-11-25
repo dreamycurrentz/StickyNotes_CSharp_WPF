@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using StickyNotes.Models;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Xml.Serialization;
 
 namespace StickyNotes
 {
@@ -11,6 +13,7 @@ namespace StickyNotes
     public partial class MainWindow : Window
     {
         private readonly string _fileName = "C:\\Users\\akash\\source\\repos\\StickyNotes\\StickyNotesSavedFile.txt";
+        private readonly string _fileNameXML = "C:\\Users\\akash\\source\\repos\\StickyNotes\\RichTextBoxData.xml";
         private TextRange range;
         private FileStream fStream;
 
@@ -18,7 +21,7 @@ namespace StickyNotes
         {
             InitializeComponent();
             LoadNotesContent();
-            
+
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
@@ -31,14 +34,20 @@ namespace StickyNotes
         {
             try
             {
-                range = new TextRange(notesContentRichTextBox.Document.ContentStart, notesContentRichTextBox.Document.ContentEnd);
-                fStream = new FileStream(_fileName, FileMode.Create);
-                range.Save(fStream, DataFormats.Text);
-                fStream.Close();
+                TextRange textRange = new TextRange(notesContentRichTextBox.Document.ContentStart, notesContentRichTextBox.Document.ContentEnd);
+                string richText = textRange.Text;
+
+                RichTextBoxData data = new RichTextBoxData { Text = richText };
+
+                XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
+                using (FileStream fs = new FileStream(_fileNameXML, FileMode.Create))
+                {
+                    serializer.Serialize(fs, data);
+                }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                Console.WriteLine($"Exception: {ex}" );
+                Console.WriteLine($"Exception: {ex}");
             }
         }
 
@@ -49,16 +58,19 @@ namespace StickyNotes
 
         private void LoadNotesContent()
         {
-            if (File.Exists(_fileName))
+            if (File.Exists(_fileNameXML))
             {
-                TextRange range = new TextRange(notesContentRichTextBox.Document.ContentStart, notesContentRichTextBox.Document.ContentEnd);
-                FileStream fStream = new FileStream(_fileName, FileMode.OpenOrCreate);
-                range.Load(fStream, DataFormats.Text);
-                fStream.Close();
+                XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
+                using (FileStream fs = new FileStream(_fileNameXML, FileMode.Open))
+                {
+                    RichTextBoxData data = (RichTextBoxData)serializer.Deserialize(fs);
+                    notesContentRichTextBox.Document.Blocks.Clear();
+                    notesContentRichTextBox.Document.Blocks.Add(new Paragraph(new Run(data.Text)));
+                }
             }
             else
             {
-                MessageBox.Show("File not exists!");
+                notesContentRichTextBox.AppendText("Enter here...");
             }
         }
 

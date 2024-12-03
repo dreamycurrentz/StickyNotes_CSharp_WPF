@@ -85,5 +85,43 @@ namespace StickyNotes
         {
             SaveToTextFile();
         }
+
+        private void BoldButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleTextStyle(TextElement.FontWeightProperty, FontWeights.Bold, FontWeights.Normal);
+        }
+
+        private void ItalicButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleTextStyle(TextElement.FontStyleProperty, FontStyles.Italic, FontStyles.Normal);
+        }
+
+        private void ToggleTextStyle(DependencyProperty formattingProperty, object value, object defaultValue)
+        {
+            TextSelection selectedText = notesContentRichTextBox.Selection;
+
+            if (!selectedText.IsEmpty)
+            {
+                object currentValue = selectedText.GetPropertyValue(formattingProperty);
+                if (currentValue == DependencyProperty.UnsetValue || !currentValue.Equals(value))
+                {
+                    selectedText.ApplyPropertyValue(formattingProperty, value);
+                }
+                else
+                {
+                    selectedText.ApplyPropertyValue(formattingProperty, defaultValue);
+                }
+            }
+        }
+
+        private void UnderlineButton_Click(object sender, RoutedEventArgs e)
+        {
+            TextSelection selectedText = notesContentRichTextBox.Selection;
+            if (!selectedText.IsEmpty)
+            {
+                var existingDecorations = selectedText.GetPropertyValue(Inline.TextDecorationsProperty);
+                selectedText.ApplyPropertyValue(Inline.TextDecorationsProperty, existingDecorations == TextDecorations.Underline ? null : TextDecorations.Underline);
+            }
+        }
     }
 }

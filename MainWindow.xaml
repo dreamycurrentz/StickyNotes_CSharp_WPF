@@ -11,23 +11,30 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
         <RichTextBox x:Name="notesContentRichTextBox" Grid.Row="0" FontSize="20" Margin="1"
-                     TextChanged="notesContentRichTextBox_TextChanged">
-            <RichTextBox.Resources>
-                <Style TargetType="{x:Type Paragraph}">
-                    <Setter Property="Margin" Value="0"/>
-                </Style>
-            </RichTextBox.Resources>
-        </RichTextBox>
+                     TextChanged="notesContentRichTextBox_TextChanged"
+                     VerticalScrollBarVisibility="Auto"/>
+
         <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Bold" Click="BoldButton_Click"/>
+            <Button Grid.Column="1" Content="Italic" Click="ItalicButton_Click"/>
+            <Button Grid.Column="2" Content="Underlined" Click="UnderlineButton_Click"/>
+        </Grid>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="Save" Click="ButtonSave_Click"/>
-            <Button Grid.Column="2" Content="Clear" Click="ButtonClear_Click"/>
+            <Button Grid.Column="1" Content="Clear" Click="ButtonClear_Click"/>
         </Grid>
     </Grid>
 </Window>

@@ -34,18 +34,19 @@ namespace StickyNotes
         {
             try
             {
-                // Extract text from RichTextBox
                 TextRange textRange = new TextRange(notesContentRichTextBox.Document.ContentStart, notesContentRichTextBox.Document.ContentEnd);
-                string richText = textRange.Text;
 
-                // Create an instance of the class and set the text
-                RichTextBoxData data = new RichTextBoxData { Text = richText };
-
-                // Serialize the class instance to XMLSerializer
-                XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
-                using (FileStream fs = new FileStream(_fileNameXML, FileMode.Create))
+                using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    serializer.Serialize(fs, data);
+                    textRange.Save(memoryStream, DataFormats.Xaml);
+                    string xamlContent = System.Text.Encoding.UTF8.GetString(memoryStream.ToArray());
+
+                    RichTextBoxData data = new RichTextBoxData { Content = xamlContent };
+                    XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
+                    using (FileStream fileStream = new FileStream(_fileNameXML,FileMode.Create))
+                    {
+                        serializer.Serialize(fileStream, data);
+                    }
                 }
             }
             catch (Exception ex)
@@ -61,17 +62,21 @@ namespace StickyNotes
 
         private void LoadNotesContent()
         {
-            // If the file exists
+            //If the file exists
             if (File.Exists(_fileNameXML))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(RichTextBoxData));
-                using (FileStream fs = new FileStream(_fileNameXML, FileMode.Open))
+                RichTextBoxData data;
+
+                using (FileStream fileStream = new FileStream(_fileNameXML, FileMode.Open))
                 {
-                    RichTextBoxData data = (RichTextBoxData)serializer.Deserialize(fs);
-                    // Clear the RichTextBox content
-                    notesContentRichTextBox.Document.Blocks.Clear();
-                    // Load the text into the RichTextBox
-                    notesContentRichTextBox.Document.Blocks.Add(new Paragraph(new Run(data.Text)));
+                    data = (RichTextBoxData)serializer.Deserialize(fileStream);
+                }
+
+                TextRange textRange = new TextRange(notesContentRichTextBox.Document.ContentStart, notesContentRichTextBox.Document.ContentEnd);
+                using (MemoryStream memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(data.Content)))
+                {
+                    textRange.Load(memoryStream, DataFormats.Xaml);
                 }
             }
             // If the file doesn't exist, enter this text to the RichTextBox
@@ -117,10 +122,20 @@ namespace StickyNotes
         private void UnderlineButton_Click(object sender, RoutedEventArgs e)
         {
             TextSelection selectedText = notesContentRichTextBox.Selection;
+
             if (!selectedText.IsEmpty)
             {
-                var existingDecorations = selectedText.GetPropertyValue(Inline.TextDecorationsProperty);
-                selectedText.ApplyPropertyValue(Inline.TextDecorationsProperty, existingDecorations == TextDecorations.Underline ? null : TextDecorations.Underline);
+                
+                var currentDecorations = selectedText.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection;
+
+                if (currentDecorations != null && currentDecorations.Contains(TextDecorations.Underline.FirstOrDefault()))
+                {
+                    selectedText.ApplyPropertyValue(Inline.TextDecorationsProperty, null);
+                }
+                else
+                {
+                    selectedText.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
+                }
             }
         }
     }
